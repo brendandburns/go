@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
@@ -44,11 +45,11 @@ func (l *KubeConfigLoader) loadAzureToken() bool {
 func (l *KubeConfigLoader) refreshAzureToken() error {
 	tenantID, exists := l.user.AuthProvider.Config["tenant-id"]
 	if !exists {
-		return fmt.Errorf("Missing tenant id in authProvider.config")
+		return fmt.Errorf("missing tenant id in authProvider.config")
 	}
 	clientID, exists := l.user.AuthProvider.Config["client-id"]
 	if !exists {
-		return fmt.Errorf("Missing client id!")
+		return fmt.Errorf("missing client id")
 	}
 
 	aadEndpoint := "https://login.microsoftonline.com"
@@ -60,8 +61,8 @@ func (l *KubeConfigLoader) refreshAzureToken() error {
 	token := adal.Token{
 		AccessToken:  l.user.AuthProvider.Config["access-token"],
 		RefreshToken: l.user.AuthProvider.Config["refresh-token"],
-		ExpiresIn:    l.user.AuthProvider.Config["expires-in"],
-		ExpiresOn:    l.user.AuthProvider.Config["expires-on"],
+		ExpiresIn:    json.Number(l.user.AuthProvider.Config["expires-in"]),
+		ExpiresOn:    json.Number(l.user.AuthProvider.Config["expires-on"]),
 	}
 	sptToken, err := adal.NewServicePrincipalTokenFromManualToken(*config, clientID, resource, token)
 	if err := sptToken.Refresh(); err != nil {
